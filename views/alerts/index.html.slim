@@ -1,0 +1,84 @@
+.page-header
+  .container
+    h2.col-md-2
+      i.fa.fa-th-large
+      | Alerts
+    .col-md-10.header-title-small
+      h4
+        i.fa.fa-bell
+        | 1,256
+      p Total Alerts Delivered to Your Inbox
+.toolbar
+  .container
+    .col-md-3.col-sm-3
+      a.btn.btn-custom-icon.btn-custom-green.btn-lg.upper-case.btn-block[data-target="#alert-modal" data-toggle="modal" href="#"]
+        i.fa.fa-plus
+        | Add New Alerts
+    - unless not_first_login? || session[:dismiss_alert_msg]
+      .col-md-9.col-sm-9
+        .alert.alert-info.alert-dismissible role="alert"
+          = link_to dismiss_msg_alerts_path, remote: true do
+            button.close data-dismiss="alert" type="button"
+              span aria-hidden="true"  &times;
+              span.sr-only Close
+          | Receive email alerts when someone adds an image from your website to Pinterest. However, it doesn't just stop with your website. You can also be alerted when people pin from your competition's website. We've also made it easy to track when someone pins on profiles, boards, and even interest categories. Alerts are great for listening, engaging, or getting new ideas on popular content.
+section.content-primary.container
+  #the-content-primary
+    - unless @followers.empty?
+      - @followers.each do |follower|
+        .col-md-4.col-sm-6
+          .panel.panel-widget[class="#{source_follower_status(follower) ? '' : 'disabled'}"]
+            = form_tag(alert_path(follower), id: "edit_alert_source-form", method: :put, autocomplete: "off", remote: true) do ||
+              .panel-heading
+                h4
+                  = follower.subject
+              .panel-body
+                ul.list-group
+                  li.list-group-item
+                    label Type
+                    | &nbsp;
+                    .no-edit
+                      = source_type(follower)
+                  li.list-group-item
+                    label Last Alert
+                    | &nbsp;
+                    .no-edit
+                      = source_last_scraped_at(follower)
+                  li.list-group-item
+                    label Keywords
+                    | &nbsp;
+                    .less-keyword
+                      - if source_follower_keywords(follower).empty?
+                        | N/A
+                      - else
+                        = source_follower_keywords(follower)[0, 3].join(", ")
+                        - if source_follower_keywords(follower).size > 3
+                          | ...
+                          a href="#"  more
+                    .more-keyword.hidden
+                      = source_follower_keywords(follower).join(", ")
+                      a href="#"  less
+                    .edit-mode.hidden
+                      = text_field_tag :"source_follower[keywords]", source_follower_keywords(follower).join(", ")
+                  li.list-group-item
+                    label Frequency
+                    | &nbsp;
+                    .disp-mode
+                      = source_follower_alert_frequency(follower).titlecase
+                    .edit-mode.hidden
+                      = select_tag :"source_follower[alert_frequency]", options_for_select(frequency_options, :selected => source_follower_alert_frequency(follower))
+              .panel-footer
+                .container-fluid
+                  .col-xs-5.col-md-5.col-no-padding
+                    = check_box_tag :"source_follower[status]", "active", source_follower_status(follower), {:class => "status", :"data-source-id" => follower.id}
+                  .disp-mode.col-xs-7.col-md-7.col-no-padding.text-right.alert-btns
+                    = link_to "Edit", "", class: "edit btn btn-custom-blue btn-sm upper-case alert-btn"
+                    | &nbsp;
+                    = link_to "Delete", alert_path(follower), method: :delete, data: {confirm: 'Are you sure you want to delete?'}, class: "delete btn btn-custom-red btn-sm upper-case alert-btn"
+                  .edit-mode.hidden.col-xs-7.col-md-7.col-no-padding.text-right
+                    button.save.btn.btn-custom-blue.btn-sm.upper-case.alert-btn Save
+                    | &nbsp;
+                    button.cancel.btn.btn-custom-grey.btn-sm.upper-case.alert-btn Cancel
+    - else
+      .col-md-12
+        h3 No alerts found.
